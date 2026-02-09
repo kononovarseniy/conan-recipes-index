@@ -1,4 +1,5 @@
 sources:
   "0.1.0":
     url:
-      - "https://github.com/kononovarseniy/common/archive/refs/heads/main.zip"
+      - "https://github.com/kononovarseniy/common/archive/refs/tags/v0.1.0.tar.gz"
+    sha256: f1eb6e0ad8a83c7d17e32adbf06b35b0cf49b73103b13e97c6d80cccc03072d6
