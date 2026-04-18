@@ -27,9 +27,11 @@ class VolkConan(ConanFile):
     settings = "os", "arch", "compiler", "build_type"
     options = {
         "fPIC": [True, False],
+        "volk_namespace": [True, False],
     }
     default_options = {
         "fPIC": True,
+        "volk_namespace": False,
     }
 
     def config_options(self):
@@ -53,6 +55,8 @@ class VolkConan(ConanFile):
         tc = CMakeToolchain(self)
         tc.variables["VOLK_PULL_IN_VULKAN"] = True
         tc.variables["VOLK_INSTALL"] = True
+        if self.options["volk_namespace"]:
+            tc.variables["VOLK_NAMESPACE"] = True
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
@@ -78,6 +82,12 @@ class VolkConan(ConanFile):
                 "if(VULKAN_HEADERS_INSTALL_DIR)",
                 "if(1)\nfind_package(VulkanHeaders REQUIRED)\nset(VOLK_INCLUDES ${VulkanHeaders_INCLUDE_DIRS})\nelseif(VULKAN_HEADERS_INSTALL_DIR)",
             )
+            replace_in_file(
+                self,
+                cmakelists,
+                "set_source_files_properties(volk.c PROPERTIES LANGUAGE CXX)",
+                "set_source_files_properties(volk.c PROPERTIES LANGUAGE CXX)\nenable_language(CXX)",
+            )
 
     def build(self):
         self._patch_sources()
@@ -97,6 +107,8 @@ class VolkConan(ConanFile):
         self.cpp_info.components["libvolk"].set_property("cmake_target_name", "volk::volk")
         self.cpp_info.components["libvolk"].libs = ["volk"]
         self.cpp_info.components["libvolk"].requires = ["vulkan-headers::vulkan-headers"]
+        if self.options["volk_namespace"]:
+            self.cpp_info.components["libvolk"].defines = ["VOLK_NAMESPACE"]
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.cpp_info.components["libvolk"].system_libs = ["dl"]
 
